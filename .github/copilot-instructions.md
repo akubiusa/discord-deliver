@@ -1,34 +1,17 @@
-# GitHub Copilot レビュー方針
+# Copilot review instructions
 
-GitHub Copilot によるコードレビュー時に重点的に確認すべき観点をまとめる。このファイルはレビュー基準であり、開発作業手順は `CLAUDE.md` を参照する。
+Development guidance lives in `AGENTS.md`; review against it.
 
-## プロジェクト前提
+## Language
 
-- Discord にメッセージを送信する軽量な Web サーバーブリッジ。
-- 実装本体は `src/main.php` の単一 PHP スクリプト（PHP 8 の built-in server で動作、外部依存ゼロ）。
-- コンテナは Alpine ベースで、`src/entrypoint.sh` が `php -S 0.0.0.0:80` を起動する。
+Write review comments in English. Deliverables (code comments, docs, commits, PRs) are English; runtime messages are English.
 
-## レビュー時の重点確認事項
+## Review checklist
 
-- **機密情報の混入**: `DISCORD_TOKEN` やチャンネル ID がコード・ログ・レスポンス・コミットに直接埋め込まれていないか。`*.env` 経由の受け渡しになっているか。
-- **エラーハンドリングと HTTP ステータス**: 異常系で適切なステータスコード（400/404/405/415/500 など）と JSON ボディ（`{status, message}` 形式）を返しているか。`http_response_code()` の呼び出しが `exit`/レスポンス送出より前にあるか。
-- **Discord API 応答の扱い**: Discord API から返ったステータスコードをそのまま透過する既存挙動を壊していないか。`$http_response_header` のパース（ステータスコード抽出の正規表現）が壊れていないか。
-- **入力バリデーション**: リクエストボディの JSON パース失敗や空ボディ、チャンネル ID の妥当性チェックが維持されているか。URL 経由チャンネル ID の判定（数値のみ・パス区切りなし）が緩められていないか。
-- **外部依存の追加**: Composer 等の外部ライブラリ依存が新規に追加されていないか（このプロジェクトは依存ゼロ・軽量性維持が方針）。
-- **Docker / CI 整合性**: `src/Dockerfile` の `EXPOSE`・`entrypoint.sh` の待ち受けポート・`docker-compose.yml` のポートマッピングが相互に矛盾していないか。マルチプラットフォーム（linux/amd64, linux/arm64）ビルドを壊していないか。
-
-## コーディング規約（レビューで確認する範囲）
-
-- コード内コメントは日本語、エラーメッセージ（レスポンスの `message`）は英語。
-- 日本語と英数字の間は半角スペース。
-- 関数を新設した場合は日本語 docstring を付与しているか（現状 `main.php` はフラットスクリプトで関数を持たないため、関数導入時に適用）。
-- シェルスクリプトは ShellCheck を通す前提（CI では `SC2086`, `SC2001` を除外）。この 2 つの除外指摘は誤検知としてフラグしない。
-
-## フラグ不要な既知パターン
-
-- `main.php` が関数分割されていない単一スクリプト構成であること自体は設計方針であり、過度な分割を要求しない。
-- 外部ライブラリ・フレームワーク未使用（標準関数のみ）は意図的な選択であり、ライブラリ導入を推奨しない。
-
-## ドキュメント整合性
-
-- API エンドポイント・環境変数・リクエストボディ形式・エラーレスポンスを変更した場合、`README.md` と `CLAUDE.md` の該当記述が更新されているか。
+- No secrets (`DISCORD_TOKEN`, channel IDs) in code, logs, responses or commits.
+- Error paths return the right HTTP status and a `{status, message}` JSON body, with `http_response_code()` before `exit`.
+- Discord API status codes are still passed through; the `$http_response_header` status parsing is intact.
+- Input validation is kept: JSON `Content-Type`, empty body, and a numeric-only channel ID in the URL.
+- No new dependencies; `src/Dockerfile` `EXPOSE`, `entrypoint.sh` port and compose port mapping agree; linux/amd64 and linux/arm64 builds still work.
+- Shell scripts pass ShellCheck (SC2086 and SC2001 are excluded in CI; do not flag them).
+- Changes to endpoints, env vars or responses update `README.md` and `AGENTS.md`.
