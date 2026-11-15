@@ -9,7 +9,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 }
 
 // Only application/json
-if (strtolower($_SERVER["CONTENT_TYPE"]) !== "application/json") {
+if (strtolower(trim(explode(";", $_SERVER["CONTENT_TYPE"] ?? "", 2)[0])) !== "application/json") {
     http_response_code(415);
     exit(json_encode([
       "status" => false,
