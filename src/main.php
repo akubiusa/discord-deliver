@@ -73,9 +73,20 @@ $context = [
   ]
 ];
 $context = stream_context_create($context);
-$contents = file_get_contents("https://discord.com/api/channels/" . $DISCORD_CHANNEL_ID . "/messages", false, $context);
-preg_match('/HTTP\/1\.[0|1|x] ([0-9]{3})/', $http_response_header[0], $matches);
-$status_code = $matches[1];
+$stream = @fopen("https://discord.com/api/channels/" . $DISCORD_CHANNEL_ID . "/messages", "r", false, $context);
+if ($stream === false) {
+    http_response_code(502);
+    exit(json_encode([
+      "status" => false,
+      "message" => "Failed to send message",
+      "response" => null
+    ]));
+}
+$headers = stream_get_meta_data($stream)["wrapper_data"];
+$contents = stream_get_contents($stream);
+fclose($stream);
+preg_match('/HTTP\/\S+ ([0-9]{3})/', $headers[0], $matches);
+$status_code = (int) ($matches[1] ?? 502);
 if ($status_code != 200) {
     http_response_code($status_code);
     exit(json_encode([
