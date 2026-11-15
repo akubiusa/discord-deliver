@@ -35,6 +35,7 @@ The response is `{"status": true, "response": ...}` on success. On failure it is
 - 405: method other than `POST`
 - 415: `Content-Type` is not `application/json`
 - 500: `DISCORD_TOKEN` is not set
+- 502: The Discord API could not be reached or returned an invalid HTTP status
 - Any other status returned by the Discord API (such as 401, 403, 429) is passed through, with the Discord response in `response`.
 
 ## Warning / Disclaimer
