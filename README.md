@@ -23,7 +23,7 @@ The container listens on port 80. Send a JSON `POST` request:
 curl -X POST -H "Content-Type: application/json" -d '{"content":"Hello, world!"}' "http://discord-deliver/{channel_id}"
 ```
 
-Request body (JSON, `Content-Type` must be exactly `application/json`):
+Request body (JSON, `Content-Type` must be `application/json`, optionally with parameters such as `charset=utf-8`):
 
 - `content`: plain text message
 - `embed`: a single Discord embed object
