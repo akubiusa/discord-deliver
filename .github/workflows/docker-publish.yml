@@ -4,8 +4,15 @@ on:
   release:
     types: [ published ]
 
+permissions:
+  contents: read
+
 jobs:
+  php-tests:
+    uses: ./.github/workflows/php-tests.yml
+
   publish:
+    needs: php-tests
     name: Push Docker image to Docker Hub
     runs-on: ubuntu-latest
     steps:
